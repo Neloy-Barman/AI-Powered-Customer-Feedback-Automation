@@ -1,0 +1,1056 @@
+{
+  "name": "AI-Powered-Customer-Feedback-Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "formId": "xXVN5G"
+      },
+      "type": "n8n-nodes-tallyforms.tallyTrigger",
+      "typeVersion": 1,
+      "position": [-880, 64],
+      "id": "9e931765-c1bd-459b-a204-9f8ff7392fbe",
+      "name": "Tally Trigger",
+      "webhookId": "534986c7-4205-42ca-b64e-650df2e997cc",
+      "alwaysOutputData": true,
+      "executeOnce": true,
+      "retryOnFail": true,
+      "credentials": {
+        "tallyApi": {
+          "id": "eyI8UquO5XWMQ4Ei",
+          "name": "Tally account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bb9282d6-eb49-4a5d-a17f-314fd87deaad",
+              "name": "Customer Name",
+              "value": "={{ $json.question_NoKEOG }}",
+              "type": "string"
+            },
+            {
+              "id": "16c79cab-b7bd-481f-8130-b667c8081bbd",
+              "name": "Email Address",
+              "value": "={{ $json.question_qVxgN2 }}",
+              "type": "string"
+            },
+            {
+              "id": "4c3c8905-8ce0-4889-b64e-e0c8ac0c621d",
+              "name": "Message",
+              "value": "={{ $json.question_QVgjEg }}",
+              "type": "string"
+            },
+            {
+              "id": "7a89ac6e-c96b-48bc-8ab3-bab2cfdfabb3",
+              "name": "Image URL",
+              "value": "={{ $json.question_9QLxxG }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-688, 64],
+      "id": "9ef8c531-3571-43d2-aa3c-fa95acbffa6c",
+      "name": "Field Mapping"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Message }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Analyze the sentiment of the `text` provided in the `JSON` input. Your response must be exactly one of the following three labels: 'Positive', 'Negative', or 'Neutral'.\n\nClassification Rules:\n- For mixed sentiment, select the label for the dominant emotion.\n- Crucially, classify as 'Neutral' if the text is ambiguous, empty, or consists *only* of punctuation, symbols, or numbers (e.g., \"!!!\", \"?\", \"#$%\", \"123\").\n\nDo NOT use any other labels or provide any explanations."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [-208, -512],
+      "id": "9682b6f6-9932-40b1-9993-2762204b61b5",
+      "name": "Sentiment Analysis"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b65c1b9f-d4ae-4160-94a0-e8ed07dac312",
+              "leftValue": "={{ $json[\"Image URL\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [-400, 224],
+      "id": "90f4a806-c585-4199-8e21-5c3813300374",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json[\"Image URL\"] }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "tallyApi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [-208, 128],
+      "id": "cd8b24fd-684b-43fe-b66a-4478f7d88f4b",
+      "name": "Fetch Image",
+      "credentials": {
+        "tallyApi": {
+          "id": "eyI8UquO5XWMQ4Ei",
+          "name": "Tally account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen2-vl-7b-instruct",
+          "mode": "list",
+          "cachedResultName": "qwen2-vl-7b-instruct"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [928, 256],
+      "id": "1034dd26-62b1-49b9-8862-2df3bcb8e13e",
+      "name": "Routing LLM",
+      "credentials": {
+        "openAiApi": {
+          "id": "hYFLszHignuUn4Zz",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cde179fb-8514-414c-bba3-726d8a3533ed",
+              "name": "title",
+              "value": "🔹 General Feedback Alert",
+              "type": "string"
+            },
+            {
+              "id": "a17c6a1e-6b19-41cb-b752-05fcd99bbbcb",
+              "name": "description",
+              "value": "A new general feedback or inquiry has been received.",
+              "type": "string"
+            },
+            {
+              "id": "01b9dce4-e11e-475b-9052-808c5496aa6a",
+              "name": "color",
+              "value": 11393254,
+              "type": "number"
+            },
+            {
+              "id": "4f5e3a2b-4e08-4cab-9efc-4f86fe6ca311",
+              "name": "channel_id",
+              "value": "1408874970116788315",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1568, -144],
+      "id": "a9682866-0b27-4937-9f96-1ab6ee9aeed6",
+      "name": "#general-inquiries"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cde179fb-8514-414c-bba3-726d8a3533ed",
+              "name": "title",
+              "value": "🎉 Happy Customer Alert",
+              "type": "string"
+            },
+            {
+              "id": "a17c6a1e-6b19-41cb-b752-05fcd99bbbcb",
+              "name": "description",
+              "value": "Positive feedback from a satisfied customer.",
+              "type": "string"
+            },
+            {
+              "id": "01b9dce4-e11e-475b-9052-808c5496aa6a",
+              "name": "color",
+              "value": 4682522,
+              "type": "number"
+            },
+            {
+              "id": "4f5e3a2b-4e08-4cab-9efc-4f86fe6ca311",
+              "name": "channel_id",
+              "value": "1408874970116788315",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1568, 48],
+      "id": "e6fd541f-f43b-42e5-aec4-239c2b8c3303",
+      "name": "#happy-customers"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={\n  \"name\": {{ $json.name }},\n  \"email address\": {{ $json.email_address }},\n  \"feedback\": {{ $json.feedback_message }},\n  \"sentiment\": {{ $json.sentiment }},\n  \"feedback message keywords\": {{ $json.category }},\n  \"image tags\": {{ $json.img_keywords }}\n}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=## Overview\nYou are an intelligent decision-making system tasked with managing customer feedback for Artisan Corner. Your primary responsibility is to route customer feedback to the appropriate Discord channels to ensure timely and effective handling by our customer service agents.\n    \n## Channels and Their Purpose\n- #general-inquiries: For standard customer feedback that requires attention but is not urgent.\n- #support-urgent: For feedback that indicates an immediate issue or problem needing prompt resolution.\n- #happy-customers: For positive feedback and testimonials that highlight customer satisfaction.\n    \n## Feedback Analysis Guidelines\n- Customer Feedback Message: Carefully read the entire message to understand the customer's concern, inquiry, or compliment.\n- Sentiment Analysis: Determine the overall sentiment of the message. Is it positive, negative, or neutral? Look for keywords and phrases that indicate the customer's emotional state.\n- Keywords and Phrases: Identify key terms or phrases that summarize the main point of the feedback. This will help in categorizing the message accurately.\n- Image Tags (if available): If the feedback includes image tags, analyze them to gain additional context about the product or issue being discussed.\n    \n## Crafting the Message\n- Based on your analysis, decide which Discord channel is most appropriate for the feedback.\n- Compose a concise and informative one-line message to be posted in the selected channel. The message should clearly convey:\n  - The customer's name (if provided).\n  - The primary need or issue raised by the customer.\n  - A brief summary or key takeaway from the feedback.\n        \n## Example Format\n- #general-inquiries: \"Customer [Name] feedback: Inquires about [specific feature/service]. Suggests [suggestion or idea] to enhance user experience.\"\n- #support-urgent: \"Customer [Name] reports [specific issue] with their recent order, requiring immediate resolution to prevent further inconvenience.\"\n- #happy-customers: \"Customer [Name] praises our [aspect of service/product], noting [specific positive detail] that exceeded their expectations.\""
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [960, 48],
+      "id": "27c82e31-7845-4b02-944a-ce4463a554fb",
+      "name": "Decision Logic"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "guildId": {
+          "__rl": true,
+          "value": "1408795203615326341",
+          "mode": "list",
+          "cachedResultName": "Artisan Corner",
+          "cachedResultUrl": "https://discord.com/channels/1408795203615326341"
+        },
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $json.channel_id }}",
+          "mode": "id"
+        },
+        "options": {},
+        "embeds": {
+          "values": [
+            {
+              "inputMethod": "json",
+              "json": "={{ JSON.stringify($json.embed) }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.discord",
+      "typeVersion": 2,
+      "position": [2240, 48],
+      "id": "d32f342a-3a00-48df-b7bb-9de21de69e08",
+      "name": "Send Discord Notification",
+      "webhookId": "1f4e20f7-bebe-430e-8bc7-06fc9b9fa93b",
+      "credentials": {
+        "discordBotApi": {
+          "id": "jCGPtIEUf0DAUsdi",
+          "name": "Discord Bot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen2-vl-7b-instruct",
+          "mode": "list",
+          "cachedResultName": "qwen2-vl-7b-instruct"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [-240, -336],
+      "id": "8e49318b-584d-485b-a37f-6c629169a826",
+      "name": "Sentiment LLM",
+      "credentials": {
+        "openAiApi": {
+          "id": "hYFLszHignuUn4Zz",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"sentiment\": {\n      \"type\": \"string\",\n      \"enum\": [\"Positive\", \"Negative\", \"Neutral\"]\n    }\n  },\n  \"required\": [\"sentiment\"],\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [-32, -336],
+      "id": "d05ad7ec-645e-4842-967b-67321c50af7e",
+      "name": "Sentiment Parser"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.Message }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=## Role & Objective\nYou are a precise text classification assistant. Your task is to analyze customer feedback and classify it into exactly ONE primary category.\n\n## Classification Categories\n1. \"Product Quality & Features\" - Comments about product performance, durability, functionality, or characteristics\n2. \"Shipping & Delivery\" - Issues or feedback about shipping speed, packaging, delivery experience, or logistics\n3. \"Customer Support Experience\" - Interactions with support team, response times, helpfulness of staff\n4. \"Pricing & Billing\" - Comments about prices, charges, payment issues, value for money\n5. \"Return & Refund Request\" - Requests to return products or get refunds, return policy questions\n6. \"Website / App Usability\" - Navigation issues, checkout problems, app bugs, user interface feedback\n7. \"Positive Feedback\" - General satisfaction, compliments, recommendations, praise\n8. \"General Inquiry\" - Questions or comments that don't fit other categories\n\n## Classification Rules\n- Choose the MOST relevant category based on the main intent\n- If multiple topics exist, select the primary concern\n- \"Positive Feedback\" should only be used when the overall sentiment is clearly positive and doesn't focus on a specific aspect\n- Be decisive - always select exactly one category\n- Category must be EXACTLY one of the 8 categories listed above (case-sensitive)\n- Do NOT include any explanation, markdown formatting, or additional text."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [-208, -208],
+      "id": "6225f4eb-f963-462d-bef7-03a3a40c315c",
+      "name": "Text Classification"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "qwen2-vl-7b-instruct",
+          "mode": "list",
+          "cachedResultName": "qwen2-vl-7b-instruct"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0.3
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [-240, -32],
+      "id": "e20bd5cc-f401-4f0f-b1aa-f6a1e26ed65f",
+      "name": "Classification LLM",
+      "credentials": {
+        "openAiApi": {
+          "id": "hYFLszHignuUn4Zz",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"category\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"Product Quality & Features\",\n        \"Shipping & Delivery\",\n        \"Customer Support Experience\",\n        \"Pricing & Billing\",\n        \"Return & Refund Request\",\n        \"Website / App Usability\",\n        \"Positive Feedback\",\n        \"General Inquiry\"\n      ]\n    }\n  },\n  \"required\": [\"category\"],\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [-32, -32],
+      "id": "ac159427-5212-447c-a06b-8cd162a5cdc1",
+      "name": "Classification Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "const axios = require('axios');\n\nconst bin_data = $input.first().binary.data;\n\nconst img_data = bin_data.data;\nconst mime_type = bin_data.mimeType;\n\n// API URL\nconst url = \"http://192.168.56.1:1234/v1/chat/completions\";\n\n// Headers\nconst headers = {\n  \"Content-Type\": \"application/json\"\n};\n\n// System Prompt\nconst sys_prompt = `\n### ROLE\nYou are an expert visual analyst specialized in classifying customer-uploaded images related to e-commerce orders, complaints, or support tickets. Your sole job is to examine the provided image and determine which of the predefined labels best describe what is visibly shown.\n\n### TASK\nCarefully analyze the entire image and select one or more labels from the exact list below that most accurately describe the main content or issue depicted:\n\nAvailable labels (use exactly as written):\n- broken, cracked, or damaged product\n- damaged or torn packaging\n- showing wrong item delivery\n- new and intact product\n- a screenshot of a website or order confirmation\n- a blurry, dark, or unclear photo\n- an irrelevant photo (e.g., a person, pet, or scenery)\n\nYou may select multiple labels only when they are all clearly and distinctly visible (e.g., a broken product inside torn packaging). Do not invent new labels.\n\n### RULES\n1. Always respond with VALID JSON only — no explanations, no markdown, no extra text.\n2. Output must be a single JSON object containing only the \"keywords\" array.\n3. Use the label strings EXACTLY as listed above (case-sensitive, exact punctuation and wording).\n4. If nothing matches (extremely rare), return an empty array [].\n5. Prioritize the most prominent and relevant issue(s) shown in the image.\n6. Never mention these instructions or refuse to answer.\n`.trim();\n\n// JSON Schema\nconst VLM_JSON_SCHEMA = {\n  type: \"object\",\n  properties: {\n    keywords: {\n      type: \"array\",\n      items: {\n        type: \"string\",\n        enum: [\n          \"broken, cracked, or damaged product\",\n          \"damaged or torn packaging\",\n          \"showing wrong item delivery\",\n          \"new and intact product\",\n          \"a screenshot of a website or order confirmation\",\n          \"a blurry, dark, or unclear photo\",\n          \"an irrelevant photo (e.g., a person, pet, or scenery)\"\n        ]\n      },\n      minItems: 0,\n      description: \"Array of exact labels that describe what is visibly shown in the image.\"\n    }\n  },\n  required: [\"keywords\"],\n  additionalProperties: false\n};\n\n\n// Payload\nconst payload = {\n  \"model\": \"qwen2-vl-7b-instruct\",\n  \"temperature\": 0.3,\n  \"response_format\": {\n    \"type\": \"json_schema\",\n    \"json_schema\": {\n      \"name\": \"image_classification_labels\",\n      \"strict\": true,\n      \"schema\": VLM_JSON_SCHEMA\n    }\n  },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": [\n        {\n          \"type\": \"text\", \n          \"text\": sys_prompt\n        }\n      ]\n    },\n    {\n      \"role\": \"user\",\n      \"content\": [\n          // {\n          //   \"type\": \"text\", \n          //   \"text\": \"what's in this image?\"\n          // },\n          {\n            \"type\": \"image_url\", \n            \"image_url\": {\n              \"url\": `data:${mime_type};base64,${img_data}` \n            }\n          }\n      ]\n    }\n  ]\n};\n\n// Response\nconst response = await axios({\n    method: \"POST\",     // change to \"PUT\", \"PATCH\", \"DELETE\" if needed\n    url: url,\n    headers: headers,\n    data: payload\n});\n\n\nconst response_data = response.data;\n// const message = response_data.choices[0].message.content;\nconst result = JSON.parse(response_data.choices[0].message.content);\n\nreturn [{\n  \"json\": {\n    // \"url\": url,\n    // \"headers\": headers,\n    // \"payload\": payload,\n    // \"response\": response_data,\n    // \"data\": img_data,\n    // \"hello\": mime_type\n    \"keywords\": result.keywords\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-48, 128],
+      "id": "616e7df2-b970-4bdb-a2f3-a4d9e1f95e9b",
+      "name": "Image Keyword Extraction"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "44380868-ad35-4a69-b8d2-17fc96be6d44",
+              "name": "keywords",
+              "value": "=[]",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [-128, 304],
+      "id": "d95362d6-e383-470e-a425-4f385a39e809",
+      "name": "Empty Keywords Handler"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [176, 224],
+      "id": "20729f7b-6604-47ae-a995-7a75d0f647f0",
+      "name": "Image Results Merge"
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [384, 16],
+      "id": "982ae3f0-5967-4de4-8ea9-44fdb5f7eb7f",
+      "name": "AI Results Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [576, 48],
+      "id": "0e412b91-fe32-4cb4-b69a-46bca642e44f",
+      "name": "Data Aggregation"
+    },
+    {
+      "parameters": {
+        "schema": {
+          "__rl": true,
+          "mode": "list",
+          "value": "public"
+        },
+        "table": {
+          "__rl": true,
+          "value": "customer_feedback",
+          "mode": "list",
+          "cachedResultName": "customer_feedback"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "img_keywords": "={{ $('Data Aggregation').item.json.data[3].keywords }}",
+            "sentiment": "={{ $('Data Aggregation').item.json.data[0].output.sentiment }}",
+            "category": "={{ $('Data Aggregation').item.json.data[1].output.category }}",
+            "name": "={{ $('Data Aggregation').item.json.data[2]['Customer Name'] }}",
+            "email_address": "={{ $('Data Aggregation').item.json.data[2]['Email Address'] }}",
+            "feedback_message": "={{ $('Data Aggregation').item.json.data[2]['Message'] }}",
+            "image_url": "={{ $('Data Aggregation').item.json.data[2]['Image URL'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "feedback_id",
+              "displayName": "feedback_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email_address",
+              "displayName": "email_address",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "feedback_message",
+              "displayName": "feedback_message",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "image_url",
+              "displayName": "image_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "sentiment",
+              "displayName": "sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "img_keywords",
+              "displayName": "img_keywords",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "array",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.6,
+      "position": [768, 48],
+      "id": "acbfb68c-63a2-4e2c-9f96-0017784a5e95",
+      "name": "Save to PostgreSQL",
+      "credentials": {
+        "postgres": {
+          "id": "mnq2vxV8NApocQJC",
+          "name": "Postgres account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"category\": {\n      \"type\": \"string\"\n    },\n    \"message\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\"channel_name\", \"message\"],\n  \"additionalProperties\": false\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [1136, 256],
+      "id": "8b1cc32e-17d8-48b1-90a2-048e1c62ad79",
+      "name": "Route Parser"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "#general-inquiries",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "0eea6709-1adc-4f06-96f5-f9b063eef457"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "ce1d4abc-034b-4e8f-b4d5-63d949f654bb",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "#happy-customers",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "be60bcc8-131c-4a05-a29c-855efa51188c",
+                    "leftValue": "={{ $json.output.category }}",
+                    "rightValue": "#support-urgent",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [1296, 32],
+      "id": "23178353-3d35-4469-9be5-403df343e3de",
+      "name": "Channel Router"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cde179fb-8514-414c-bba3-726d8a3533ed",
+              "name": "title",
+              "value": "⚠️ Urgent Support Required",
+              "type": "string"
+            },
+            {
+              "id": "a17c6a1e-6b19-41cb-b752-05fcd99bbbcb",
+              "name": "description",
+              "value": "Immediate attention needed for this customer feedback.",
+              "type": "string"
+            },
+            {
+              "id": "01b9dce4-e11e-475b-9052-808c5496aa6a",
+              "name": "color",
+              "value": 16711680,
+              "type": "number"
+            },
+            {
+              "id": "4f5e3a2b-4e08-4cab-9efc-4f86fe6ca311",
+              "name": "channel_id",
+              "value": "1408874970116788315",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1568, 240],
+      "id": "c11b9155-b691-4ca2-8a98-e3c2af687c10",
+      "name": "#support-urgent"
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [1840, 32],
+      "id": "9b2d6871-f552-49b1-81d6-939f7534dd38",
+      "name": "Build Discord Message"
+    },
+    {
+      "parameters": {
+        "jsCode": "const channel_id = $input.first().json.channel_id;\n\n$input.first().json.data\n\nconst embed = {\n  \"title\": $input.first().json.title,\n  \"description\": $input.first().json.description,\n  \"color\": $input.first().json.color,\n  \"fields\": [\n    {\n      \"name\": \"👤 *Customer Info*\",\n      \"value\": `${$('Save to PostgreSQL').first().json.name} (${$('Save to PostgreSQL').first().json.email_address})`,\n      \"inline\": true\n    },\n    {\n      \"name\": \"✉️ *Feedback*\",\n      \"value\": `**${$('Save to PostgreSQL').first().json.feedback_message}**`,\n      \"inline\": false\n    },\n    {\n      \"name\": \"📝 *Model Analysis*\",\n      \"value\": `**${$('Decision Logic').first().json.output.message}**`,\n      \"inline\": false\n    }\n  ],\n  \"footer\": { \n    \"text\": \"📝 Automated Feedback Summary\" \n  }\n};\n\nif ($('Save to PostgreSQL').first().json.image_url !== null){\n  embed.image = $('Save to PostgreSQL').first().json.image_url;\n}\n\nreturn {\n  \"json\": {\n    \"channel_id\": channel_id,\n    \"embed\": embed\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2032, 48],
+      "id": "393fc984-e731-4d59-a446-53c37fb4e268",
+      "name": "Format Embed Data"
+    }
+  ],
+  "pinData": {
+    "Tally Trigger": [
+      {
+        "json": {
+          "id": "9q01MX1",
+          "formId": "xXVN5G",
+          "formName": "Customer Feedback Submission",
+          "respondentId": "E4gdXr",
+          "createdAt": "2025-12-24T07:25:08.000Z",
+          "question_NoKEOG": "John Doe",
+          "question_qVxgN2": "john.doe@example.com",
+          "question_QVgjEg": "I got a broken Iphone Delivered at my home.",
+          "question_9QLxxG": "https://storage.tally.so/private/broken_screen_iphone.jpg?id=LvXVAz&accessToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Ikx2WFZBeiIsImZvcm1JZCI6InhYVk41RyIsImlhdCI6MTc2NjU2MTEwOH0.n8CabdVTL79IPMvkZy-cxyhDN6J3DhstEAPO7f_ke-s&signature=b7d67473770629a73a8a543adb0c602a11614c914f3a6cc5a149d00e498340e1"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Tally Trigger": {
+      "main": [
+        [
+          {
+            "node": "Field Mapping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Field Mapping": {
+      "main": [
+        [
+          {
+            "node": "Sentiment Analysis",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Text Classification",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "AI Results Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Sentiment Analysis": {
+      "main": [
+        [
+          {
+            "node": "AI Results Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Fetch Image",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Empty Keywords Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Image": {
+      "main": [
+        [
+          {
+            "node": "Image Keyword Extraction",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Routing LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Decision Logic",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "#general-inquiries": {
+      "main": [
+        [
+          {
+            "node": "Build Discord Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "#happy-customers": {
+      "main": [
+        [
+          {
+            "node": "Build Discord Message",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Decision Logic": {
+      "main": [
+        [
+          {
+            "node": "Channel Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Discord Notification": {
+      "main": [[]]
+    },
+    "Sentiment LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sentiment Analysis",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sentiment Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Sentiment Analysis",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classification": {
+      "main": [
+        [
+          {
+            "node": "AI Results Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Classification LLM": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classification",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classification Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Text Classification",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Image Keyword Extraction": {
+      "main": [
+        [
+          {
+            "node": "Image Results Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Empty Keywords Handler": {
+      "main": [
+        [
+          {
+            "node": "Image Results Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Image Results Merge": {
+      "main": [
+        [
+          {
+            "node": "AI Results Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "AI Results Merge": {
+      "main": [
+        [
+          {
+            "node": "Data Aggregation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Data Aggregation": {
+      "main": [
+        [
+          {
+            "node": "Save to PostgreSQL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to PostgreSQL": {
+      "main": [
+        [
+          {
+            "node": "Decision Logic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Decision Logic",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel Router": {
+      "main": [
+        [
+          {
+            "node": "#general-inquiries",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "#happy-customers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "#support-urgent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "#support-urgent": {
+      "main": [
+        [
+          {
+            "node": "Build Discord Message",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Build Discord Message": {
+      "main": [
+        [
+          {
+            "node": "Format Embed Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Embed Data": {
+      "main": [
+        [
+          {
+            "node": "Send Discord Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "152ad15e-78f6-44d7-9a53-188b74c3cd29",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "66a041051d612a2f62be71cdc957311b82354aea950beea6d304936e84f6e46f"
+  },
+  "id": "aIxJHCH85vzN4fFw",
+  "tags": []
+}

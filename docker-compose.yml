@@ -1,0 +1,39 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n
+    ports:
+      - 5678:5678
+    environment:
+      - GENERIC_TIMEZONE=Asia/Dhaka
+      - TZ=Asia/Dhaka
+      - N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=true
+      - N8N_RUNNERS_ENABLED=true
+      - N8N_TRUST_PROXY=true
+      - NODE_FUNCTION_ALLOW_EXTERNAL=axios
+    volumes:
+      - n8n_data:/home/node/.n8n
+    command: start --tunnel
+
+  db:
+    image: postgres:latest
+    container_name: postgres
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: <user_name>
+      POSTGRES_PASSWORD: <password>
+      POSTGRES_DB: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql 
+ 
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    depends_on:
+      - db
+
+volumes:
+  n8n_data:
+  pgdata:
