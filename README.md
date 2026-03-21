@@ -41,7 +41,7 @@
 ### ✅ The Solution
 
 <div align="center">
-  <img src="assets/ai-powered-customer-feedback-automation.gif" alt="n8n Workflow Preview" width="100%">
+  <img src="assets/ai-powered-customer-feedback-automation.gif" alt="n8n Workflow Preview" width="85%">
   <p><em>n8n workflow: Form submission → AI analysis → Smart Channel routing</em></p>
 </div>
 
@@ -58,6 +58,8 @@ An end-to-end intelligent automation that:
 > 💡 Once deployed, every submission is automatically analyzed, categorized, stored, and routed — with zero manual intervention.
 
 <!-- 03 -->
+## 🎬 Demo
+> For a full walkthrough of the system, watch the [complete demo video](https://www.linkedin.com/posts/neloy-barman_n8n-ai-automation-activity-7425432214705942528-CVp0?utm_source=share&utm_medium=member_desktop&rcm=ACoAAEBr-UABdjMBdSTwFSk2cE7BrifLMJMVG5Q).
 
 <!-- 04 -->
 ## ✨ Key Features
